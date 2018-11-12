@@ -11,118 +11,15 @@ WEBROOT="/opt/zimbra/data/nginx/html"
 SERVICES=all
 PATCH_ONLY="no"
 RESTART_ZIMBRA="yes"
+EXTRA_DOMAIN=""
+PROMPT_CONFIRM="no"
+DETECT_PUBLIC_HOSTNAMES="yes"
+SKIP_PORT_CHECK="no"
 
-## patches
-read -r -d '' PATCH_Z87 <<'EOF'
-diff -Naur templates_orig/nginx.conf.web.http.default.template templates/nginx.conf.web.http.default.template
---- templates_orig/nginx.conf.web.http.default.template	2017-10-01 20:30:23.022776735 +0200
-+++ templates/nginx.conf.web.http.default.template	2017-10-01 20:39:04.619034013 +0200
-@@ -65,6 +65,9 @@
-     ${web.login.upstream.disable}     # Fudge inter-mailbox redirects (kludge)
-     ${web.login.upstream.disable}     proxy_redirect http://$relhost/ http://$http_host/;
-     ${web.login.upstream.disable} }
-+
-+    # patched by certbot-zimbra.sh
-+    location ^~ /.well-known/acme-challenge { root /opt/zimbra/data/nginx/html; }
-
-     location /
-     {
-diff -Naur templates_orig/nginx.conf.web.https.default.template templates/nginx.conf.web.https.default.template
---- templates_orig/nginx.conf.web.https.default.template	2017-10-01 20:30:23.034776741 +0200
-+++ templates/nginx.conf.web.https.default.template	2017-10-01 20:38:47.583025551 +0200
-@@ -94,6 +94,9 @@
-     ${web.login.upstream.disable}     # Fudge inter-mailbox redirects (kludge)
-     ${web.login.upstream.disable}     proxy_redirect http://$relhost/ https://$http_host/;
-     ${web.login.upstream.disable} }
-+
-+    # patched by certbot-zimbra.sh
-+    location ^~ /.well-known/acme-challenge { root /opt/zimbra/data/nginx/html; }
-
-     location /
-     {
-diff -Naur templates_orig/nginx.conf.web.https.template templates/nginx.conf.web.https.template
---- templates_orig/nginx.conf.web.https.template	2017-10-01 20:30:23.034776741 +0200
-+++ templates/nginx.conf.web.https.template	2017-10-01 20:35:34.062929705 +0200
-@@ -95,6 +95,9 @@
-     ${web.login.upstream.disable}     proxy_redirect http://$relhost/ https://$http_host/;
-     ${web.login.upstream.disable} }
-
-+    # patched by certbot-zimbra.sh
-+    location ^~ /.well-known/acme-challenge { root /opt/zimbra/data/nginx/html; }
-+
-     location /
-     {
-         # Begin stray redirect hack
-diff -Naur templates_orig/nginx.conf.web.http.template templates/nginx.conf.web.http.template
---- templates_orig/nginx.conf.web.http.template	2017-10-01 20:30:23.034776741 +0200
-+++ templates/nginx.conf.web.http.template	2017-10-01 20:33:26.550866829 +0200
-@@ -67,6 +67,9 @@
-     ${web.login.upstream.disable}     proxy_redirect http://$relhost/ http://$http_host/;
-     ${web.login.upstream.disable} }
-
-+    # patched by certbot-zimbra.sh
-+    location ^~ /.well-known/acme-challenge { root /opt/zimbra/data/nginx/html; }
-+
-     location /
-     {
-         # Begin stray redirect hack
-EOF
-
-read -r -d '' PATCH_Z86 <<'EOF'
-+++ templates/nginx.conf.web.http.default.template	2017-09-10 09:57:59.420380580 +0200
-@@ -39,6 +39,8 @@
-     ${web.login.upstream.disable}     # Fudge inter-mailbox redirects (kludge)
-     ${web.login.upstream.disable}     proxy_redirect http://$relhost/ http://$http_host/;
-     ${web.login.upstream.disable} }
-+
-+    location ^~ /.well-known/acme-challenge { root /opt/zimbra/data/nginx/html; }
-
-     ${web.login.upstream.disable} location = /
-     ${web.login.upstream.disable} {
-diff -Naur templates_ORIG/nginx.conf.web.https.default.template templates/nginx.conf.web.https.default.template
---- templates_ORIG/nginx.conf.web.https.default.template	2015-12-16 09:51:45.196584572 +0100
-+++ templates/nginx.conf.web.https.default.template	2017-09-10 09:58:23.839441900 +0200
-@@ -55,6 +55,8 @@
-     ${web.login.upstream.disable}     # Fudge inter-mailbox redirects (kludge)
-     ${web.login.upstream.disable}     proxy_redirect http://$relhost/ https://$http_host/;
-     ${web.login.upstream.disable} }
-+
-+    location ^~ /.well-known/acme-challenge { root /opt/zimbra/data/nginx/html; }
-
-     ${web.login.upstream.disable} location = /
-     ${web.login.upstream.disable} {
-diff -Naur templates_ORIG/nginx.conf.web.https.template templates/nginx.conf.web.https.template
---- templates_ORIG/nginx.conf.web.https.template	2015-12-02 15:36:35.322922195 +0100
-+++ templates/nginx.conf.web.https.template	2017-09-10 09:59:17.917577714 +0200
-@@ -56,6 +56,8 @@
-     ${web.login.upstream.disable}     # Fudge inter-mailbox redirects (kludge)
-     ${web.login.upstream.disable}     proxy_redirect http://$relhost/ https://$http_host/;
-     ${web.login.upstream.disable} }
-+
-+    location ^~ /.well-known/acme-challenge { root /opt/zimbra/data/nginx/html; }
-
-     ${web.login.upstream.disable} location = /
-     ${web.login.upstream.disable} {
-diff -Naur templates_ORIG/nginx.conf.web.http.template templates/nginx.conf.web.http.template
---- templates_ORIG/nginx.conf.web.http.template	2014-12-15 22:18:51.000000000 +0100
-+++ templates/nginx.conf.web.http.template	2017-09-10 10:00:10.216709079 +0200
-@@ -66,6 +66,8 @@
-     ${web.login.upstream.disable}     # Fudge inter-mailbox redirects (kludge)
-     ${web.login.upstream.disable}     proxy_redirect http://$relhost/ http://$http_host/;
-     ${web.login.upstream.disable} }
-+
-+    location ^~ /.well-known/acme-challenge { root /opt/zimbra/data/nginx/html; }
-
-     location /
-     {
-EOF
-
-## end patches
-
-## functions
+## functions
 # check executable certbot-auto / certbot / letsencrypt
 function check_executable() {
-	LEB_BIN=$(which certbot-auto certbot letsencrypt | head -n 1)
+	LEB_BIN=$(which certbot-auto certbot letsencrypt 2>/dev/null | head -n 1)
 	# No way
 	if [ -z "$LEB_BIN" ]; then
 		echo "No letsencrypt/certbot binary found in $PATH";
@@ -134,7 +31,7 @@ function check_executable() {
 function version_gt() { test "$(printf '%s\n' "$@" | sort -V | head -n 1)" != "$1"; }
 
 function bootstrap() {
-    echo "Certbot-Zimbra v0.2 - https://github.com/YetOpen/certbot-zimbra"
+    echo "Certbot-Zimbra v0.5 - https://github.com/YetOpen/certbot-zimbra"
 
 	if [ ! -x "/opt/zimbra/bin/zmcontrol" ]; then
 		echo "/opt/zimbra/bin/zmcontrol not found"
@@ -148,14 +45,48 @@ function bootstrap() {
 	echo "Detected Zimbra $DETECTED_ZIMBRA_VERSION"
 	check_executable
 
-	# zimbraReverseProxyMailMode
-	ZMODE=$(/opt/zimbra/bin/zmprov gs $(/opt/zimbra/bin/zmhostname) zimbraReverseProxyMailMode | grep Mode | cut -f 2 -d " ")
-
 	if version_gt $DETECTED_ZIMBRA_VERSION 8.7; then
 		NGINX_BIN="/opt/zimbra/common/sbin/nginx"
 	else
 		NGINX_BIN="/opt/zimbra/nginx/sbin/nginx"
 	fi
+
+	if ! is_zimbra_on_port_80 ; then
+		echo "Zimbra's nginx doesn't seem to be listening on port 80"
+		echo "This script applies a patch to nginx, so it wouldn't work. Please check your config or pass -j"
+		exit 1;
+	fi
+}
+
+# Check if nginx is listening on port 80 or return an error
+function is_zimbra_on_port_80 () {
+	if [ "$SKIP_PORT_CHECK" == "yes" ]; then
+		echo "Skipping port check"
+		return
+	fi
+
+	# Better check with lsof, if available
+	LSOF_BIN=$(which lsof 2>/dev/null)
+	if [ ! -z "$LSOF_BIN" ]; then
+		NGINX_CNT=$($LSOF_BIN -i :80 -u zimbra -a | grep -v COMMAND | wc -l)
+		if [ $NGINX_CNT -lt 1 ]; then
+			false
+			return
+		fi
+	fi
+
+	# Fallback to ss
+	SS_BIN=$(which ss 2>/dev/null)
+	if [ ! -z "$SS_BIN" ]; then
+		NGINX_CNT=$($SS_BIN -lptn sport eq 80 | grep nginx | wc -l)
+		if [ $NGINX_CNT -lt 1 ]; then
+			false
+			return
+		fi
+	fi
+
+	# If no tool is available just return true
+	true
 }
 
 # Patch nginx, and check if it's installed
@@ -170,17 +101,11 @@ function patch_nginx() {
 		exit 1;
 	fi
 
+	# Check if patch is already present
 	grep -q 'acme-challenge' /opt/zimbra/conf/nginx/includes/nginx.conf.web.http.default
 	if [ $? -eq 0 ]; then
 		# No need to patch
 		return
-	fi
-
-    # check if patch binary is present
-	PATCH_BIN=$(which patch)
-	if [ -z "$PATCH_BIN" ]; then
-		echo "No patch binary found. Please install OS 'patch' package";
-		exit 1;
 	fi
 
 	# Let's make a backup of zimbra's original templates
@@ -188,33 +113,10 @@ function patch_nginx() {
 	echo "Making a backup of nginx templates in /opt/zimbra/conf/nginx/templates.$BKDATE"
 	cp -r /opt/zimbra/conf/nginx/templates /opt/zimbra/conf/nginx/templates.$BKDATE
 
-	# Simulate patching
-	if version_gt $DETECTED_ZIMBRA_VERSION 8.7; then
-		echo "$PATCH_Z87" | $PATCH_BIN --dry-run -l -p1 -d /opt/zimbra/conf/nginx/templates/
-	elif version_gt $DETECTED_ZIMBRA_VERSION 8.6; then
-		echo "$PATCH_Z86" | $PATCH_BIN --dry-run -l -p1 -d /opt/zimbra/conf/nginx/templates/
-	else
-		echo "Your Zimbra version is not currently supported"
-		exit 1;
-	fi
-	if [ $? -ne 0 ]; then
-		echo "Patching test failed! Please file a bug with the output above to https://github.com/YetOpen/certbot-zimbra/issues/new"
-		exit 1;
-	fi
-
 	# DO patch
-	if version_gt $DETECTED_ZIMBRA_VERSION 8.7; then
-		echo "$PATCH_Z87" | $PATCH_BIN -l -p1 -d /opt/zimbra/conf/nginx/templates/
-	elif version_gt $DETECTED_ZIMBRA_VERSION 8.6; then
-		echo "$PATCH_Z86" | $PATCH_BIN -l -p1 -d /opt/zimbra/conf/nginx/templates/
-	fi
-	if [ $? -ne 0 ]; then
-		echo "Patching zimbra's nginx failed! File a bug with the output above to https://github.com/YetOpen/certbot-zimbra/issues/new"
-		# Restore the backups
-		cp /opt/zimbra/conf/nginx/templates.$BKDATE/* /opt/zimbra/conf/nginx/templates/
-		echo "The original templates has been restored from /opt/zimbra/conf/nginx/templates.$BKDATE"
-		exit 1;
-	fi
+	for patchfile in nginx.conf.web.http.default.template nginx.conf.web.https.default.template nginx.conf.web.http.template nginx.conf.web.https.template ; do
+		sed -i 's/^}/\n    # patched by certbot-zimbra.sh\n    location \^\~ \/.well-known\/acme-challenge { \n        root \/opt\/zimbra\/data\/nginx\/html;\n    }\n}/' /opt/zimbra/conf/nginx/templates/$patchfile
+	done;
 
 	# reload nginx config
 	su - zimbra -c 'zmproxyctl restart'
@@ -227,19 +129,30 @@ function patch_nginx() {
 # perform the letsencrypt request and prepares the certs
 function request_certificate() {
 	# If we got no domain from command line try using zimbra hostname
-	# FIXME the prompt should be avoided in cron!
 	if [ -z "$DOMAIN" ]; then
-		ZMHOSTNAME=$(/opt/zimbra/bin/zmhostname)
+		DOMAIN=$(/opt/zimbra/bin/zmhostname)
+        # Detect additional hostnames
+        find_additional_public_hostnames
+    fi
+    if [ -z "$DOMAIN" ]; then
+        echo "No domain detected! Please run with --hostname or check why zmhostname is not working"
+        exit 1;
+    fi
+	echo "Detected $DOMAIN as Zimbra hostname"
+    [ ! -z "$EXTRA_DOMAIN_OUTPUT" ] && echo "These additional domains will be part of the requested certificate: $EXTRA_DOMAIN_OUTPUT"
+    if [ "$PROMPT_CONFIRM" == "yes" ]; then
 		while true; do
-			read -p "Detected $ZMHOSTNAME as Zimbra domain: use this hostname for certificate request? " yn
+			read -p "Is this correct? " yn
 		    	case $yn in
-				[Yy]* ) DOMAIN=$ZMHOSTNAME; break;;
+				[Yy]* ) break;;
 				[Nn]* ) echo "Please call $(basename $0) --hostname your.host.name"; exit;;
 				* ) echo "Please answer yes or no.";;
 		    	esac
 		done
 	fi
 
+	# Set variable for use in prepare_certificate
+	CERTPATH="/etc/letsencrypt/live/$DOMAIN"
 	if [ "$RENEW_ONLY" == "yes" ]; then
 		return
 	fi
@@ -252,15 +165,38 @@ function request_certificate() {
 
 	# Request our cert
     # If Zimbra is in https only we can use port 80 for ourselves, otherwise go through nginx
-	$LEB_BIN certonly $AGREE_TOS -a webroot -w $WEBROOT -d $DOMAIN
+	$LEB_BIN certonly $AGREE_TOS --expand -a webroot -w $WEBROOT -d $DOMAIN $EXTRA_DOMAIN
 	if [ $? -ne 0 ] ; then
 		echo "letsencrypt returned an error";
 		exit 1;
 	fi
 }
 
+# detect additional public service hostnames from configured domains' zimbraPublicServiceHostname
+function find_additional_public_hostnames() {
+    # Useless during renew
+    [ "$RENEW_ONLY" == "yes" ] && return;
+    # If we already have them set leave alone
+    [ ! -z "$EXTRA_DOMAIN" ] && return;
+    # If it has been requested NOT to perform the search
+    [ "$DETECT_PUBLIC_HOSTNAME" == "no" ] && return;
+    for i in $(/opt/zimbra/bin/zmprov gad); do
+        ADDITIONAL_DOMAIN=$(/opt/zimbra/bin/zmprov gd $i zimbraPublicServiceHostname | grep zimbraPublicServiceHostname | cut -f 2 -d ' ')
+        [ -z "$ADDITIONAL_DOMAIN" ] && continue
+        # Skip our primary domain
+        [ "$ADDITIONAL_DOMAIN" == "$DOMAIN" ] && continue;
+        EXTRA_DOMAIN="${EXTRA_DOMAIN} -d $ADDITIONAL_DOMAIN"
+        # to be used at prompt
+        EXTRA_DOMAIN_OUTPUT="${EXTRA_DOMAIN_OUTPUT} $ADDITIONAL_DOMAIN"
+    done
+}
+
 # copies stuff ready for zimbra deployment and test them
 function prepare_certificate () {
+	if [ -z "$CERTPATH" ] ; then
+		echo "Empty CERTPATH"
+		exit 1;
+	fi
 	# Make zimbra accessible files
 	mkdir /opt/zimbra/ssl/letsencrypt 2>/dev/null
 	cp $CERTPATH/* /opt/zimbra/ssl/letsencrypt/
@@ -335,7 +271,7 @@ fi
 
 function usage () {
 	cat <<EOF
-USAGE: $(basename $0) < -n | -r | -p > [-d my.host.name] [-x] [-w /var/www]
+USAGE: $(basename $0) < -n | -r | -p > [-d my.host.name] [-e extra.domain.tld] [-x] [-w /var/www]
   Options:
 	 -n | --new: performs a request for a new certificate
 	 -r | --renew: deploys certificate, assuming it has just been renewed
@@ -343,11 +279,15 @@ USAGE: $(basename $0) < -n | -r | -p > [-d my.host.name] [-x] [-w /var/www]
 
 	Optional arguments:
 	 -d | --hostname: hostname being requested. If not passed uses \`zmhostname\`
+	 -e | --extra-domain: additional domains being requested. Can be used multiple times
 	 -x | --no-nginx: doesn't check and patch zimbra's nginx. Assumes some other webserver is listening on port 80
 	 -w | --webroot: if there's another webserver on port 80 specify its webroot
-	 -a | --agree-tos: agree with the Terms of Service of Let's Encrypt
+	 -a | --agree-tos: agree with the Terms of Service of Let's Encrypt (avoids prompt)
+	 -c | --prompt-confirmation: ask for confirmation before proceding with cert request showing detected hostname
 	 -s | --services <service_names>: the set of services to be used for a certificate. Valid services are 'all' or any of: ldap,mailboxd,mta,proxy. Default: 'all'
 	 -z | --no-zimbra-restart: do not restart zimbra after a certificate deployment
+	 -u | --no-public-hostname-detection: do not detect additional hostnames from domains' zimbraServicePublicHostname. Enabled when -e is passed
+	 -j | --no-port-check: disable port 80 check
 
 Author: Lorenzo Milesi <maxxer@yetopen.it>
 Feedback, bugs and PR are welcome on GitHub: https://github.com/yetopen/certbot-zimbra.
@@ -366,7 +306,17 @@ while [[ $# -gt 0 ]]; do
 	case $key in
 	    -d|--hostname)
 	    DOMAIN="$2"
+        DETECT_PUBLIC_HOSTNAMES="no"
 	    shift # past argument
+	    ;;
+        -e|--extra-domain)
+        EXTRA_DOMAIN="${EXTRA_DOMAIN} -d $2"
+        EXTRA_DOMAIN_OUTPUT="${EXTRA_DOMAIN_OUTPUT} $2"
+        DETECT_PUBLIC_HOSTNAMES="no"
+        shift # past argument
+        ;;
+	    -u|--no-public-hostname-detection)
+        DETECT_PUBLIC_HOSTNAMES="no"
 	    ;;
 	    -x|--no-nginx)
 	    NO_NGINX="yes"
@@ -374,25 +324,31 @@ while [[ $# -gt 0 ]]; do
 	    -p|--patch-only)
 	    PATCH_ONLY="yes"
 	    ;;
-			-n|--new)
+		-n|--new)
 	  	NEW_CERT="yes"
 	    ;;
-			-r|--renew)
+		-r|--renew)
 	  	RENEW_ONLY="yes"
 	    ;;
-			-w|--webroot)
+		-w|--webroot)
 	  	WEBROOT="$2"
-			shift
+		shift
 	    ;;
-			-a|--agree-tos)
+		-a|--agree-tos)
 	  	AGREE_TOS="--text --agree-tos --non-interactive"
-      ;;
-			-s|--services)
+        ;;
+		-s|--services)
 	  	SERVICES="$2"
-			shift
+		shift
 	    ;;
-			-z|--no-zimbra-restart)
+		-z|--no-zimbra-restart)
 	  	RESTART_ZIMBRA="no"
+	    ;;
+		-c|--prompt-confirmation)
+	  	PROMPT_CONFIRM="yes"
+	    ;;
+		-j|--no-port-check)
+	  	SKIP_PORT_CHECK="yes"
 	    ;;
 	    *)
 	  	# unknown option
